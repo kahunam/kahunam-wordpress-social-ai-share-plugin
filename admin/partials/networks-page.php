@@ -49,7 +49,14 @@ usort($all_networks, function($a, $b) {
                     <span class="network-drag-handle dashicons dashicons-menu"></span>
                     
                     <div class="network-icon" style="background-color: <?php echo esc_attr($network['color']); ?>">
-                        <img src="<?php echo esc_url(AI_SHARE_BUTTONS_URL . 'assets/icons/' . $network['icon']); ?>" 
+                        <?php 
+                        $icon_url = AI_SHARE_BUTTONS_URL . 'assets/icons/' . $network['icon'];
+                        // Check if it's a full URL (custom icon)
+                        if (strpos($network['icon'], 'http') === 0) {
+                            $icon_url = $network['icon'];
+                        }
+                        ?>
+                        <img src="<?php echo esc_url($icon_url); ?>" 
                              alt="<?php echo esc_attr($network['name']); ?>">
                     </div>
                     

@@ -191,7 +191,7 @@ function ai_share_get_template_variables() {
 }
 
 /**
- * Sanitize hex color
+ * Sanitize hex color - WordPress function fallback
  */
 if (!function_exists('sanitize_hex_color')) {
     function sanitize_hex_color($color) {
@@ -204,6 +204,6 @@ if (!function_exists('sanitize_hex_color')) {
             return $color;
         }
         
-        return null;
+        return '';
     }
 }

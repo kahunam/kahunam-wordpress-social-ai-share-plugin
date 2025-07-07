@@ -28,6 +28,9 @@ class AI_Share_Buttons {
         // Initialize hooks
         $this->init_hooks();
         
+        // Ensure default data is set
+        $this->ensure_default_data();
+        
         // Initialize components
         if (is_admin()) {
             $this->admin = new AI_Share_Buttons_Admin();
@@ -56,6 +59,22 @@ class AI_Share_Buttons {
         // AJAX handlers
         add_action('wp_ajax_ai_share_track_click', array($this, 'ajax_track_click'));
         add_action('wp_ajax_nopriv_ai_share_track_click', array($this, 'ajax_track_click'));
+    }
+    
+    private function ensure_default_data() {
+        // Ensure networks have default data
+        $networks = get_option('ai_share_buttons_networks');
+        if (empty($networks) || empty($networks['built_in'])) {
+            $default_networks = self::get_default_networks();
+            update_option('ai_share_buttons_networks', $default_networks);
+        }
+        
+        // Ensure prompts have default data
+        $prompts = get_option('ai_share_buttons_prompts');
+        if (empty($prompts) || empty($prompts['built_in'])) {
+            $default_prompts = self::get_default_prompts();
+            update_option('ai_share_buttons_prompts', $default_prompts);
+        }
     }
     
     public function shortcode_handler($atts) {
@@ -96,7 +115,7 @@ class AI_Share_Buttons {
     }
     
     public function get_networks() {
-        $networks = get_option('ai_share_buttons_networks', $this->get_default_networks());
+        $networks = get_option('ai_share_buttons_networks', self::get_default_networks());
         return $networks;
     }
     
@@ -106,7 +125,7 @@ class AI_Share_Buttons {
     }
     
     public function get_prompts() {
-        $prompts = get_option('ai_share_buttons_prompts', $this->get_default_prompts());
+        $prompts = get_option('ai_share_buttons_prompts', self::get_default_prompts());
         return $prompts;
     }
     
@@ -116,7 +135,7 @@ class AI_Share_Buttons {
     }
     
     public function get_settings() {
-        $settings = get_option('ai_share_buttons_settings', $this->get_default_settings());
+        $settings = get_option('ai_share_buttons_settings', self::get_default_settings());
         return $settings;
     }
     
@@ -125,7 +144,7 @@ class AI_Share_Buttons {
         return update_option('ai_share_buttons_settings', $sanitized);
     }
     
-    private function get_default_networks() {
+    private static function get_default_networks() {
         return array(
             'built_in' => array(
                 'chatgpt' => array(
@@ -303,7 +322,7 @@ class AI_Share_Buttons {
         );
     }
     
-    private function get_default_prompts() {
+    private static function get_default_prompts() {
         return array(
             'built_in' => array(
                 'summarize' => array(
@@ -374,7 +393,7 @@ class AI_Share_Buttons {
         );
     }
     
-    private function get_default_settings() {
+    private static function get_default_settings() {
         return array(
             'auto_display' => true,
             'hook_location' => 'the_content',
@@ -410,7 +429,7 @@ class AI_Share_Buttons {
                     'enabled' => (bool) $network['enabled'],
                     'order' => intval($network['order']),
                     'icon' => sanitize_text_field($network['icon']),
-                    'color' => sanitize_hex_color($network['color']),
+                    'color' => sanitize_hex_color($network['color']) ?: '#000000',
                     'url_template' => esc_url_raw($network['url_template']),
                     'default_prompt' => isset($network['default_prompt']) ? sanitize_textarea_field($network['default_prompt']) : '',
                     'built_in' => (bool) $network['built_in']

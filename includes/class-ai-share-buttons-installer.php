@@ -96,19 +96,38 @@ class AI_Share_Buttons_Installer {
     }
     
     private static function set_default_options() {
-        $plugin = AI_Share_Buttons::get_instance();
+        // Get default settings directly
+        $default_settings = array(
+            'auto_display' => true,
+            'hook_location' => 'the_content',
+            'hook_priority' => 10,
+            'custom_hook' => '',
+            'post_types' => array('post', 'page'),
+            'css_level' => 'full',
+            'mobile_layout' => 'horizontal_scroll',
+            'tablet_layout' => 'stack',
+            'hide_mobile' => false,
+            'container_class' => 'ai-share-buttons',
+            'button_class' => 'ai-share-button',
+            'dropdown_class' => 'ai-prompt-dropdown',
+            'custom_css' => '',
+            'enable_analytics' => true,
+            'version' => AI_SHARE_BUTTONS_VERSION
+        );
         
         // Only set options if they don't exist
         if (get_option('ai_share_buttons_settings') === false) {
-            add_option('ai_share_buttons_settings', $plugin->get_settings());
+            add_option('ai_share_buttons_settings', $default_settings);
         }
         
         if (get_option('ai_share_buttons_networks') === false) {
-            add_option('ai_share_buttons_networks', $plugin->get_networks());
+            // Add default networks later when plugin is fully loaded
+            add_option('ai_share_buttons_networks', array('built_in' => array(), 'custom' => array()));
         }
         
         if (get_option('ai_share_buttons_prompts') === false) {
-            add_option('ai_share_buttons_prompts', $plugin->get_prompts());
+            // Add default prompts later when plugin is fully loaded
+            add_option('ai_share_buttons_prompts', array('built_in' => array(), 'custom' => array()));
         }
         
         // Schedule daily cleanup

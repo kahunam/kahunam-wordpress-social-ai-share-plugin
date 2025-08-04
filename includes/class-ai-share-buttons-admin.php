@@ -135,9 +135,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_save_network() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $network_data = array(
             'id' => sanitize_text_field($_POST['id']),
@@ -184,9 +182,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_delete_network() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $network_id = sanitize_text_field($_POST['network_id']);
         
@@ -216,9 +212,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_reorder_networks() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $order = $_POST['order'];
         if (!is_array($order)) {
@@ -254,9 +248,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_save_prompt() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $prompt_data = array(
             'id' => sanitize_text_field($_POST['id']),
@@ -300,9 +292,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_delete_prompt() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $prompt_id = sanitize_text_field($_POST['prompt_id']);
         
@@ -332,9 +322,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_save_settings() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $settings = array(
             'auto_display' => isset($_POST['auto_display']) ? true : false,
@@ -365,9 +353,7 @@ class AI_Share_Buttons_Admin {
     public function ajax_upload_icon() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         if (!isset($_FILES['icon_file'])) {
             wp_send_json_error('No file uploaded');

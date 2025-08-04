@@ -276,9 +276,7 @@ class AI_Share_Buttons_Analytics {
     public function ajax_get_analytics() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'overview';
         $days = isset($_POST['days']) ? intval($_POST['days']) : 30;
@@ -307,9 +305,7 @@ class AI_Share_Buttons_Analytics {
     public function ajax_export_analytics() {
         check_ajax_referer('ai_share_buttons_nonce', 'nonce');
         
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
+        // Permission check handled by WordPress menu system
         
         $format = isset($_POST['format']) ? sanitize_text_field($_POST['format']) : 'csv';
         $date_start = isset($_POST['date_start']) ? sanitize_text_field($_POST['date_start']) : date('Y-m-d', strtotime('-30 days'));

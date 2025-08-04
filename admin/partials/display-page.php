@@ -230,19 +230,6 @@ $post_types = get_post_types(array('public' => true), 'objects');
                         </p>
                     </td>
                 </tr>
-                
-                <tr>
-                    <th><?php _e('Enable Analytics', 'ai-share-buttons'); ?></th>
-                    <td>
-                        <label>
-                            <input type="checkbox" 
-                                   name="enable_analytics" 
-                                   value="1" 
-                                   <?php checked($settings['enable_analytics']); ?>>
-                            <?php _e('Track button clicks and usage analytics', 'ai-share-buttons'); ?>
-                        </label>
-                    </td>
-                </tr>
             </table>
         </div>
         

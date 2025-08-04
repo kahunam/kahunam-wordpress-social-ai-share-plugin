@@ -21,7 +21,6 @@ if (isset($settings['delete_data_on_uninstall']) && $settings['delete_data_on_un
     // Drop tables
     global $wpdb;
     $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}ai_share_clicks");
-    $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}ai_share_analytics");
     
     // Remove upload directory
     $upload_dir = wp_upload_dir();

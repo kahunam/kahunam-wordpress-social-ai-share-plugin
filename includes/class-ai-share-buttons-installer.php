@@ -39,7 +39,6 @@ class AI_Share_Buttons_Installer {
             // Drop tables
             global $wpdb;
             $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}ai_share_clicks");
-            $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}ai_share_analytics");
             
             // Remove upload directory
             $upload_dir = wp_upload_dir();
@@ -74,25 +73,8 @@ class AI_Share_Buttons_Installer {
             KEY service_id (service_id)
         ) $charset_collate;";
         
-        // Analytics summary table
-        $analytics_table = $wpdb->prefix . 'ai_share_analytics';
-        $sql_analytics = "CREATE TABLE $analytics_table (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            date_recorded date NOT NULL,
-            service_id varchar(50) NOT NULL,
-            prompt_id varchar(50) DEFAULT NULL,
-            total_clicks int(11) DEFAULT 0,
-            unique_clicks int(11) DEFAULT 0,
-            avg_response_time decimal(5,3) DEFAULT NULL,
-            success_rate decimal(5,2) DEFAULT NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY date_service_prompt (date_recorded, service_id, prompt_id),
-            KEY date_recorded (date_recorded)
-        ) $charset_collate;";
-        
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_clicks);
-        dbDelta($sql_analytics);
     }
     
     private static function set_default_options() {
@@ -111,7 +93,6 @@ class AI_Share_Buttons_Installer {
             'button_class' => 'ai-share-button',
             'dropdown_class' => 'ai-prompt-dropdown',
             'custom_css' => '',
-            'enable_analytics' => true,
             'version' => AI_SHARE_BUTTONS_VERSION
         );
         

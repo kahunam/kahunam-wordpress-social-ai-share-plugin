@@ -8,7 +8,6 @@ class AI_Share_Buttons {
     private static $instance = null;
     private $admin;
     private $frontend;
-    private $analytics;
     
     public static function get_instance() {
         if (null === self::$instance) {
@@ -39,10 +38,6 @@ class AI_Share_Buttons {
             $this->frontend = new AI_Share_Buttons_Frontend();
             $this->frontend->init();
         }
-        
-        // Initialize analytics
-        $this->analytics = new AI_Share_Buttons_Analytics();
-        $this->analytics->init();
     }
     
     private function load_dependencies() {
@@ -55,10 +50,6 @@ class AI_Share_Buttons {
         
         // Register widget
         add_action('widgets_init', array($this, 'register_widget'));
-        
-        // AJAX handlers
-        add_action('wp_ajax_ai_share_track_click', array($this, 'ajax_track_click'));
-        add_action('wp_ajax_nopriv_ai_share_track_click', array($this, 'ajax_track_click'));
     }
     
     private function ensure_default_data() {
@@ -105,21 +96,6 @@ class AI_Share_Buttons {
         }
         
         return $this->frontend->render_buttons($args);
-    }
-    
-    public function ajax_track_click() {
-        check_ajax_referer('ai_share_buttons_nonce', 'nonce');
-        
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        $service_id = isset($_POST['service_id']) ? sanitize_text_field($_POST['service_id']) : '';
-        $prompt_id = isset($_POST['prompt_id']) ? sanitize_text_field($_POST['prompt_id']) : '';
-        
-        if ($post_id && $service_id) {
-            $this->analytics->track_click($post_id, $service_id, $prompt_id);
-            wp_send_json_success();
-        } else {
-            wp_send_json_error('Invalid parameters');
-        }
     }
     
     public function get_networks() {
@@ -416,7 +392,6 @@ class AI_Share_Buttons {
             'button_class' => 'ai-share-button',
             'dropdown_class' => 'ai-prompt-dropdown',
             'custom_css' => '',
-            'enable_analytics' => true,
             'version' => AI_SHARE_BUTTONS_VERSION
         );
     }
@@ -495,7 +470,6 @@ class AI_Share_Buttons {
             'button_class' => sanitize_text_field($settings['button_class']),
             'dropdown_class' => sanitize_text_field($settings['dropdown_class']),
             'custom_css' => wp_strip_all_tags($settings['custom_css']),
-            'enable_analytics' => (bool) $settings['enable_analytics'],
             'version' => sanitize_text_field($settings['version'])
         );
     }
@@ -518,12 +492,17 @@ class AI_Share_Buttons {
             return $template;
         }
         
-        // Prepare variables
+        // Prepare variables - limit content to prevent memory issues
+        $content = wp_strip_all_tags($post_obj->post_content);
+        if (strlen($content) > 5000) {
+            $content = substr($content, 0, 5000) . '...';
+        }
+        
         $variables = array(
             '{POST_URL}' => get_permalink($post_id),
             '{POST_TITLE}' => get_the_title($post_id),
             '{POST_EXCERPT}' => get_the_excerpt($post_id),
-            '{POST_CONTENT}' => wp_strip_all_tags(get_the_content(null, false, $post_obj)),
+            '{POST_CONTENT}' => $content,
             '{SITE_NAME}' => get_bloginfo('name'),
             '{SITE_URL}' => home_url(),
             '{AUTHOR_NAME}' => get_the_author_meta('display_name', $post_obj->post_author),

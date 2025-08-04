@@ -27,8 +27,6 @@
                 var networkId = $button.data('network');
                 var networkType = $button.data('type');
                 
-                // Track click
-                self.trackClick(networkId, null);
                 
                 // Handle special cases
                 if (networkId === 'copy') {
@@ -72,8 +70,6 @@
             // Process the URL
             var url = this.buildShareUrl(urlTemplate, promptText);
             
-            // Track click
-            this.trackClick(networkId, promptId);
             
             // Open in new window
             window.open(url, '_blank', 'width=600,height=400');
@@ -165,26 +161,7 @@
                     $message.remove();
                 }, 300);
             }, 2000);
-        },
-        
-        trackClick: function(networkId, promptId) {
-            if (!aiShareButtonsFront.ajaxUrl) {
-                return;
-            }
-            
-            $.ajax({
-                url: aiShareButtonsFront.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ai_share_track_click',
-                    nonce: aiShareButtonsFront.nonce,
-                    post_id: aiShareButtonsFront.postId,
-                    service_id: networkId,
-                    prompt_id: promptId || ''
-                },
-                dataType: 'json'
-            });
-        },
+},
         
         setupMobileLayout: function() {
             if (!this.isMobile()) {

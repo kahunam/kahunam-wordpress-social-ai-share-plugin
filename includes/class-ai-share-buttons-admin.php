@@ -65,15 +65,6 @@ class AI_Share_Buttons_Admin {
             'ai-share-buttons-display',
             array($this, 'render_display_page')
         );
-        
-        add_submenu_page(
-            'ai-share-buttons',
-            __('Analytics', 'ai-share-buttons'),
-            __('Analytics', 'ai-share-buttons'),
-            'manage_options',
-            'ai-share-buttons-analytics',
-            array($this, 'render_analytics_page')
-        );
     }
     
     public function enqueue_admin_assets($hook) {
@@ -126,10 +117,6 @@ class AI_Share_Buttons_Admin {
     
     public function render_display_page() {
         include AI_SHARE_BUTTONS_PATH . 'admin/partials/display-page.php';
-    }
-    
-    public function render_analytics_page() {
-        include AI_SHARE_BUTTONS_PATH . 'admin/partials/analytics-page.php';
     }
     
     public function ajax_save_network() {
@@ -338,7 +325,6 @@ class AI_Share_Buttons_Admin {
             'button_class' => sanitize_text_field($_POST['button_class']),
             'dropdown_class' => sanitize_text_field($_POST['dropdown_class']),
             'custom_css' => wp_strip_all_tags($_POST['custom_css']),
-            'enable_analytics' => isset($_POST['enable_analytics']) ? true : false,
             'version' => AI_SHARE_BUTTONS_VERSION
         );
         

@@ -182,35 +182,54 @@ class AI_Share_Buttons_Frontend {
         $networks = $this->plugin->get_networks();
         $prompts = $this->plugin->get_prompts();
         
+        // Validate data structures
+        if (!is_array($networks) || !isset($networks['built_in']) || !is_array($networks['built_in'])) {
+            return '';
+        }
+        
+        if (!is_array($prompts) || !isset($prompts['built_in']) || !is_array($prompts['built_in'])) {
+            $prompts = array('built_in' => array(), 'custom' => array());
+        }
+        
         // Get enabled networks sorted by order
         $enabled_networks = array();
         
-        // Merge built-in and custom networks
-        $all_networks = array_merge($networks['built_in'], $networks['custom']);
+        // Merge built-in and custom networks safely
+        $custom_networks = (isset($networks['custom']) && is_array($networks['custom'])) ? $networks['custom'] : array();
+        $all_networks = array_merge($networks['built_in'], $custom_networks);
         
-        // Filter and sort
+        // Filter and sort with limit to prevent memory issues
+        $count = 0;
         foreach ($all_networks as $network) {
-            if ($network['enabled']) {
+            if ($count >= 50) break; // Limit to 50 networks max
+            if (isset($network['enabled']) && $network['enabled']) {
                 $enabled_networks[] = $network;
+                $count++;
             }
         }
         
         // Sort by order
         usort($enabled_networks, function($a, $b) {
-            return $a['order'] - $b['order'];
+            return ($a['order'] ?? 0) - ($b['order'] ?? 0);
         });
         
-        // Start output buffering
+        // Start output buffering with error handling
         ob_start();
-        ?>
-        <div class="<?php echo esc_attr($this->settings['container_class']); ?>" data-post-id="<?php echo esc_attr($post_id); ?>">
-            <?php foreach ($enabled_networks as $network): ?>
-                <?php $this->render_button($network, $prompts, $post_id); ?>
-            <?php endforeach; ?>
-        </div>
-        <?php
+        try {
+            ?>
+            <div class="<?php echo esc_attr($this->settings['container_class']); ?>" data-post-id="<?php echo esc_attr($post_id); ?>">
+                <?php foreach ($enabled_networks as $network): ?>
+                    <?php $this->render_button($network, $prompts, $post_id); ?>
+                <?php endforeach; ?>
+            </div>
+            <?php
+            $output = ob_get_clean();
+        } catch (Exception $e) {
+            ob_end_clean();
+            $output = '';
+        }
         
-        return ob_get_clean();
+        return $output;
     }
     
     private function render_button($network, $prompts, $post_id = null) {
@@ -245,23 +264,41 @@ class AI_Share_Buttons_Frontend {
         $service_prompts = array();
         
         if ($network_type === 'ai') {
-            foreach ($prompts['built_in'] as $prompt) {
-                if ($prompt['enabled'] && in_array($network_id, $prompt['assigned_services'])) {
-                    $has_prompts = true;
-                    $service_prompts[] = $prompt;
+            // Limit prompts to prevent memory issues
+            $prompt_count = 0;
+            
+            if (isset($prompts['built_in']) && is_array($prompts['built_in'])) {
+                foreach ($prompts['built_in'] as $prompt) {
+                    if ($prompt_count >= 20) break; // Limit to 20 prompts per service
+                    if (isset($prompt['enabled']) && $prompt['enabled'] && 
+                        isset($prompt['assigned_services']) && is_array($prompt['assigned_services']) &&
+                        in_array($network_id, $prompt['assigned_services'])) {
+                        $has_prompts = true;
+                        $service_prompts[] = $prompt;
+                        $prompt_count++;
+                    }
                 }
             }
-            foreach ($prompts['custom'] as $prompt) {
-                if ($prompt['enabled'] && in_array($network_id, $prompt['assigned_services'])) {
-                    $has_prompts = true;
-                    $service_prompts[] = $prompt;
+            
+            if (isset($prompts['custom']) && is_array($prompts['custom'])) {
+                foreach ($prompts['custom'] as $prompt) {
+                    if ($prompt_count >= 20) break; // Limit to 20 prompts per service
+                    if (isset($prompt['enabled']) && $prompt['enabled'] && 
+                        isset($prompt['assigned_services']) && is_array($prompt['assigned_services']) &&
+                        in_array($network_id, $prompt['assigned_services'])) {
+                        $has_prompts = true;
+                        $service_prompts[] = $prompt;
+                        $prompt_count++;
+                    }
                 }
             }
             
             // Sort prompts by order
-            usort($service_prompts, function($a, $b) {
-                return $a['order'] - $b['order'];
-            });
+            if (!empty($service_prompts)) {
+                usort($service_prompts, function($a, $b) {
+                    return ($a['order'] ?? 0) - ($b['order'] ?? 0);
+                });
+            }
         }
         ?>
         <div class="<?php echo esc_attr($button_class); ?> <?php echo esc_attr($button_class . '-' . $network_id); ?> <?php echo $has_prompts ? 'has-dropdown' : ''; ?>" 

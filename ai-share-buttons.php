@@ -33,7 +33,6 @@ function ai_share_buttons_load_files() {
         'includes/class-ai-share-buttons-installer.php', 
         'includes/class-ai-share-buttons-admin.php',
         'includes/class-ai-share-buttons-frontend.php',
-        'includes/class-ai-share-buttons-analytics.php',
         'includes/functions.php'
     );
 

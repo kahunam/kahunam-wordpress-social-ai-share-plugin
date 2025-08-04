@@ -81,12 +81,4 @@ function ai_share_buttons_load_textdomain() {
 }
 add_action('init', 'ai_share_buttons_load_textdomain');
 
-// Global function for manual placement
-if (!function_exists('ai_share_buttons')) {
-    function ai_share_buttons($args = array()) {
-        if (class_exists('AI_Share_Buttons')) {
-            $plugin = AI_Share_Buttons::get_instance();
-            echo $plugin->render_buttons($args);
-        }
-    }
-}
+// Global function for manual placement is defined in includes/functions.php

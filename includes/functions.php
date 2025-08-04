@@ -9,9 +9,19 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Global function for manual placement
+ */
+function ai_share_buttons($args = array()) {
+    if (class_exists('AI_Share_Buttons')) {
+        $plugin = AI_Share_Buttons::get_instance();
+        echo $plugin->render_buttons($args);
+    }
+}
+
+/**
  * Get the plugin instance
  */
-function ai_share_buttons() {
+function ai_share_buttons_instance() {
     return AI_Share_Buttons::get_instance();
 }
 
@@ -19,7 +29,7 @@ function ai_share_buttons() {
  * Get a specific network by ID
  */
 function ai_share_get_network($network_id) {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     $networks = $plugin->get_networks();
     
     if (isset($networks['built_in'][$network_id])) {
@@ -35,7 +45,7 @@ function ai_share_get_network($network_id) {
  * Get a specific prompt by ID
  */
 function ai_share_get_prompt($prompt_id) {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     $prompts = $plugin->get_prompts();
     
     if (isset($prompts['built_in'][$prompt_id])) {
@@ -59,7 +69,7 @@ function ai_share_is_network_enabled($network_id) {
  * Get all enabled networks
  */
 function ai_share_get_enabled_networks() {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     $networks = $plugin->get_networks();
     $enabled = array();
     
@@ -85,7 +95,7 @@ function ai_share_get_enabled_networks() {
  * Get prompts for a specific service
  */
 function ai_share_get_service_prompts($service_id) {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     $prompts = $plugin->get_prompts();
     $service_prompts = array();
     
@@ -115,7 +125,7 @@ function ai_share_get_service_prompts($service_id) {
  * Process template variables for current post
  */
 function ai_share_process_template($template, $post_id = null) {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     return $plugin->process_template_variables($template, $post_id);
 }
 
@@ -146,7 +156,7 @@ function ai_share_get_share_url($network_id, $prompt_id = null) {
  * Check if current page should display share buttons
  */
 function ai_share_should_display() {
-    $plugin = ai_share_buttons();
+    $plugin = ai_share_buttons_instance();
     $settings = $plugin->get_settings();
     
     // Check if auto display is enabled

@@ -81,8 +81,15 @@ class AI_Share_Buttons {
         $args = shortcode_atts(array(
             'services' => '',
             'style' => 'default',
-            'align' => 'left'
+            'align' => 'left',
+            'post_id' => get_the_ID()
         ), $atts);
+        
+        // Ensure frontend is initialized
+        if (!$this->frontend) {
+            $this->frontend = new AI_Share_Buttons_Frontend();
+            $this->frontend->init();
+        }
         
         return $this->render_buttons($args);
     }
@@ -94,6 +101,7 @@ class AI_Share_Buttons {
     public function render_buttons($args = array()) {
         if (!$this->frontend) {
             $this->frontend = new AI_Share_Buttons_Frontend();
+            $this->frontend->init();
         }
         
         return $this->frontend->render_buttons($args);

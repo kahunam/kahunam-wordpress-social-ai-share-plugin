@@ -17,6 +17,9 @@ class AI_Share_Buttons_Frontend {
         // Enqueue frontend assets
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
         
+        // Also check for shortcode and load assets if needed
+        add_action('wp', array($this, 'check_for_shortcode'));
+        
         // Auto display hooks
         if ($this->settings['auto_display']) {
             $hook = $this->settings['hook_location'];
@@ -34,15 +37,65 @@ class AI_Share_Buttons_Frontend {
         }
     }
     
-    public function enqueue_frontend_assets() {
-        // Only enqueue on singular posts/pages
-        if (!is_singular()) {
-            return;
+    public function check_for_shortcode() {
+        global $post;
+        
+        if ($post && has_shortcode($post->post_content, 'ai_share_buttons')) {
+            $this->force_enqueue_assets();
+        }
+    }
+    
+    private function force_enqueue_assets() {
+        global $post;
+        
+        // CSS
+        if ($this->settings['css_level'] !== 'none') {
+            wp_enqueue_style(
+                'ai-share-buttons-frontend',
+                AI_SHARE_BUTTONS_URL . 'assets/css/frontend.css',
+                array(),
+                AI_SHARE_BUTTONS_VERSION
+            );
+            
+            // Add custom CSS if any
+            if (!empty($this->settings['custom_css'])) {
+                wp_add_inline_style('ai-share-buttons-frontend', $this->settings['custom_css']);
+            }
         }
         
-        // Check if current post type is enabled
-        $post_type = get_post_type();
-        if (!in_array($post_type, $this->settings['post_types'])) {
+        // JavaScript
+        wp_enqueue_script(
+            'ai-share-buttons-frontend',
+            AI_SHARE_BUTTONS_URL . 'assets/js/frontend.js',
+            array('jquery'),
+            AI_SHARE_BUTTONS_VERSION,
+            true
+        );
+        
+        // Localize script
+        wp_localize_script('ai-share-buttons-frontend', 'aiShareButtonsFront', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('ai_share_buttons_nonce'),
+            'postId' => $post ? $post->ID : 0,
+            'strings' => array(
+                'copySuccess' => __('Link copied to clipboard!', 'ai-share-buttons'),
+                'copyError' => __('Failed to copy link', 'ai-share-buttons')
+            )
+        ));
+    }
+    
+    public function enqueue_frontend_assets() {
+        // Enqueue on singular posts/pages or if shortcode is being used
+        global $post;
+        
+        if (is_singular()) {
+            // Check if current post type is enabled
+            $post_type = get_post_type();
+            if (!in_array($post_type, $this->settings['post_types'])) {
+                return;
+            }
+        } elseif (!$post || !has_shortcode($post->post_content, 'ai_share_buttons')) {
+            // If not singular and no shortcode, don't load
             return;
         }
         
@@ -111,6 +164,20 @@ class AI_Share_Buttons_Frontend {
     }
     
     public function render_buttons($args = array()) {
+        // Get post ID from args or current post
+        $post_id = isset($args['post_id']) ? intval($args['post_id']) : get_the_ID();
+        
+        // If still no post ID, try to get from global post
+        if (!$post_id) {
+            global $post;
+            $post_id = $post ? $post->ID : 0;
+        }
+        
+        // Return empty if no valid post ID
+        if (!$post_id) {
+            return '';
+        }
+        
         // Get networks and prompts
         $networks = $this->plugin->get_networks();
         $prompts = $this->plugin->get_prompts();
@@ -136,9 +203,9 @@ class AI_Share_Buttons_Frontend {
         // Start output buffering
         ob_start();
         ?>
-        <div class="<?php echo esc_attr($this->settings['container_class']); ?>" data-post-id="<?php echo get_the_ID(); ?>">
+        <div class="<?php echo esc_attr($this->settings['container_class']); ?>" data-post-id="<?php echo esc_attr($post_id); ?>">
             <?php foreach ($enabled_networks as $network): ?>
-                <?php $this->render_button($network, $prompts); ?>
+                <?php $this->render_button($network, $prompts, $post_id); ?>
             <?php endforeach; ?>
         </div>
         <?php
@@ -146,7 +213,10 @@ class AI_Share_Buttons_Frontend {
         return ob_get_clean();
     }
     
-    private function render_button($network, $prompts) {
+    private function render_button($network, $prompts, $post_id = null) {
+        if (!$post_id) {
+            $post_id = get_the_ID();
+        }
         $button_class = $this->settings['button_class'];
         $network_type = $network['type'];
         $network_id = $network['id'];
@@ -156,7 +226,7 @@ class AI_Share_Buttons_Frontend {
         
         // Special handling for utility buttons
         if ($network_type === 'utility') {
-            $this->render_utility_button($network, $icon_url);
+            $this->render_utility_button($network, $icon_url, $post_id);
             return;
         }
         
@@ -166,7 +236,7 @@ class AI_Share_Buttons_Frontend {
             $share_url = '#';
             $onclick = 'return false;';
         } else {
-            $share_url = $this->build_share_url($network['url_template']);
+            $share_url = $this->build_share_url($network['url_template'], '', $post_id);
             $onclick = '';
         }
         
@@ -241,7 +311,10 @@ class AI_Share_Buttons_Frontend {
         <?php
     }
     
-    private function render_utility_button($network, $icon_url) {
+    private function render_utility_button($network, $icon_url, $post_id = null) {
+        if (!$post_id) {
+            $post_id = get_the_ID();
+        }
         $button_class = $this->settings['button_class'];
         $network_id = $network['id'];
         
@@ -281,7 +354,7 @@ class AI_Share_Buttons_Frontend {
             <div class="<?php echo esc_attr($button_class); ?> <?php echo esc_attr($button_class . '-' . $network_id); ?>" 
                  data-network="<?php echo esc_attr($network_id); ?>"
                  data-type="utility">
-                <a href="<?php echo esc_url($this->build_share_url($network['url_template'])); ?>" 
+                <a href="<?php echo esc_url($this->build_share_url($network['url_template'], '', $post_id)); ?>" 
                    class="<?php echo esc_attr($button_class); ?>-link"
                    style="background-color: <?php echo esc_attr($network['color']); ?>">
                     <span class="<?php echo esc_attr($button_class); ?>-icon">
@@ -314,12 +387,12 @@ class AI_Share_Buttons_Frontend {
         return AI_SHARE_BUTTONS_URL . 'assets/icons/' . $icon_filename;
     }
     
-    private function build_share_url($template, $prompt_text = '') {
-        $processed = $this->plugin->process_template_variables($template);
+    private function build_share_url($template, $prompt_text = '', $post_id = null) {
+        $processed = $this->plugin->process_template_variables($template, $post_id);
         
         // Handle encoded prompt
         if (!empty($prompt_text) && strpos($processed, '{encoded_prompt}') !== false) {
-            $prompt_processed = $this->plugin->process_template_variables($prompt_text);
+            $prompt_processed = $this->plugin->process_template_variables($prompt_text, $post_id);
             $encoded_prompt = urlencode($prompt_processed);
             $processed = str_replace('{encoded_prompt}', $encoded_prompt, $processed);
         }

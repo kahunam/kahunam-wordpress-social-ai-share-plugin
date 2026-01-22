@@ -148,4 +148,64 @@ class SettingsIntegrationTest extends WP_UnitTestCase {
         $this->assertEquals('Ask AI', $retrieved['ai_label']);
         $this->assertEquals('Share this', $retrieved['social_label']);
     }
+
+    /**
+     * Test advanced settings can be saved
+     */
+    public function test_advanced_settings_save(): void {
+        $settings = kaais_get_defaults();
+        $settings['content_priority'] = 50;
+        $settings['wrapper_class'] = 'my-wrapper';
+        $settings['css_loading'] = 'singular';
+        $settings['dropdown_z_index'] = 100;
+
+        update_option('kaais_settings', $settings);
+
+        $retrieved = kaais_get_settings();
+
+        $this->assertEquals(50, $retrieved['content_priority']);
+        $this->assertEquals('my-wrapper', $retrieved['wrapper_class']);
+        $this->assertEquals('singular', $retrieved['css_loading']);
+        $this->assertEquals(100, $retrieved['dropdown_z_index']);
+    }
+
+    /**
+     * Test layout settings can be saved
+     */
+    public function test_layout_settings_save(): void {
+        $settings = kaais_get_defaults();
+        $settings['layout'] = 'stacked-divider';
+        $settings['show_labels'] = false;
+        $settings['platform_order'] = ['claude', 'chatgpt', 'gemini', 'grok', 'perplexity'];
+
+        update_option('kaais_settings', $settings);
+
+        $retrieved = kaais_get_settings();
+
+        $this->assertEquals('stacked-divider', $retrieved['layout']);
+        $this->assertFalse($retrieved['show_labels']);
+        $this->assertEquals(['claude', 'chatgpt', 'gemini', 'grok', 'perplexity'], $retrieved['platform_order']);
+    }
+
+    /**
+     * Test content priority has valid default
+     */
+    public function test_content_priority_default(): void {
+        kaais_activate();
+
+        $settings = kaais_get_settings();
+
+        $this->assertEquals(20, $settings['content_priority']);
+    }
+
+    /**
+     * Test z-index has valid default
+     */
+    public function test_dropdown_zindex_default(): void {
+        kaais_activate();
+
+        $settings = kaais_get_settings();
+
+        $this->assertEquals(10, $settings['dropdown_z_index']);
+    }
 }

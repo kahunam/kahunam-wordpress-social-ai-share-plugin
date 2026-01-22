@@ -24,6 +24,9 @@ class RenderTest extends TestCase {
             'esc_attr' => function($text) { return htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); },
             'esc_url' => function($url) { return $url; },
             '__' => function($text) { return $text; },
+            'wp_parse_args' => function($args, $defaults) { return array_merge($defaults, $args); },
+            'sanitize_html_class' => function($class) { return $class; },
+            'absint' => function($val) { return abs(intval($val)); },
         ]);
     }
 
@@ -36,9 +39,11 @@ class RenderTest extends TestCase {
      * Test render returns empty when no post ID
      */
     public function test_render_returns_empty_without_post_id(): void {
-        Functions\expect('get_the_ID')->andReturn(0);
+        // Override the stub to return 0/false for no post context
+        Functions\when('get_the_ID')->justReturn(0);
+        Functions\expect('get_option')->andReturn(kaais_get_defaults());
 
-        $output = kaais_render_buttons(0);
+        $output = kaais_render_buttons(null);
 
         $this->assertEmpty($output);
     }
@@ -219,5 +224,115 @@ class RenderTest extends TestCase {
             rawurlencode('http://example.com/test-post/'),
             $output
         );
+    }
+
+    /**
+     * Test render applies stacked layout class
+     */
+    public function test_render_applies_stacked_layout(): void {
+        $settings = kaais_get_defaults();
+        $settings['layout'] = 'stacked';
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('kaais--stacked', $output);
+    }
+
+    /**
+     * Test render applies divider layout class
+     */
+    public function test_render_applies_divider_layout(): void {
+        $settings = kaais_get_defaults();
+        $settings['layout'] = 'divider';
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('kaais--divider', $output);
+    }
+
+    /**
+     * Test render applies stacked-divider layout classes
+     */
+    public function test_render_applies_stacked_divider_layout(): void {
+        $settings = kaais_get_defaults();
+        $settings['layout'] = 'stacked-divider';
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('kaais--stacked', $output);
+        $this->assertStringContainsString('kaais--divider', $output);
+    }
+
+    /**
+     * Test render includes custom wrapper class
+     */
+    public function test_render_includes_wrapper_class(): void {
+        $settings = kaais_get_defaults();
+        $settings['wrapper_class'] = 'my-custom-class';
+
+        Functions\expect('get_option')->andReturn($settings);
+        Functions\expect('sanitize_html_class')
+            ->andReturnUsing(function($class) { return $class; });
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('my-custom-class', $output);
+    }
+
+    /**
+     * Test render adds z-index data attribute when non-default
+     */
+    public function test_render_adds_zindex_data_when_custom(): void {
+        $settings = kaais_get_defaults();
+        $settings['dropdown_z_index'] = 50;
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('data-zindex="50"', $output);
+    }
+
+    /**
+     * Test render does not add z-index data when default
+     */
+    public function test_render_omits_zindex_data_when_default(): void {
+        $settings = kaais_get_defaults();
+        $settings['dropdown_z_index'] = 10; // default
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringNotContainsString('data-zindex', $output);
+    }
+
+    /**
+     * Test render hides labels when show_labels is false
+     */
+    public function test_render_hides_labels_when_disabled(): void {
+        $settings = kaais_get_defaults();
+        $settings['show_labels'] = false;
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        $this->assertStringContainsString('kaais__label--hidden', $output);
+    }
+
+    /**
+     * Test render shows labels when show_labels is true
+     */
+    public function test_render_shows_labels_when_enabled(): void {
+        $settings = kaais_get_defaults();
+        $settings['show_labels'] = true;
+        Functions\expect('get_option')->andReturn($settings);
+
+        $output = kaais_render_buttons(1);
+
+        // Should have label class but not hidden modifier
+        $this->assertStringContainsString('kaais__label', $output);
+        $this->assertStringNotContainsString('kaais__label--hidden', $output);
     }
 }

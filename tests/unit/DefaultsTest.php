@@ -126,4 +126,50 @@ class DefaultsTest extends TestCase {
         $this->assertEquals('Explore with AI', $defaults['ai_label']);
         $this->assertEquals('Share', $defaults['social_label']);
     }
+
+    /**
+     * Test defaults contain advanced settings keys
+     */
+    public function test_defaults_has_advanced_settings(): void {
+        $defaults = kaais_get_defaults();
+
+        $this->assertArrayHasKey('content_priority', $defaults);
+        $this->assertArrayHasKey('wrapper_class', $defaults);
+        $this->assertArrayHasKey('css_loading', $defaults);
+        $this->assertArrayHasKey('dropdown_z_index', $defaults);
+    }
+
+    /**
+     * Test default advanced settings values
+     */
+    public function test_default_advanced_settings_values(): void {
+        $defaults = kaais_get_defaults();
+
+        $this->assertEquals(20, $defaults['content_priority']);
+        $this->assertEquals('', $defaults['wrapper_class']);
+        $this->assertEquals('always', $defaults['css_loading']);
+        $this->assertEquals(10, $defaults['dropdown_z_index']);
+    }
+
+    /**
+     * Test defaults contain layout settings
+     */
+    public function test_defaults_has_layout_settings(): void {
+        $defaults = kaais_get_defaults();
+
+        $this->assertArrayHasKey('layout', $defaults);
+        $this->assertArrayHasKey('show_labels', $defaults);
+        $this->assertArrayHasKey('platform_order', $defaults);
+    }
+
+    /**
+     * Test default layout settings values
+     */
+    public function test_default_layout_values(): void {
+        $defaults = kaais_get_defaults();
+
+        $this->assertEquals('inline', $defaults['layout']);
+        $this->assertTrue($defaults['show_labels']);
+        $this->assertEquals([], $defaults['platform_order']);
+    }
 }

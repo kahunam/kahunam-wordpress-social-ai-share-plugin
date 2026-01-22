@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "kaais/share-buttons",
+  "version": "2.1.0",
+  "title": "AI Share Buttons",
+  "category": "widgets",
+  "icon": "share-alt",
+  "description": "Share buttons for AI platforms and social networks.",
+  "keywords": ["share", "ai", "social", "chatgpt", "claude", "gemini", "grok"],
+  "textdomain": "kaais",
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": true
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "render": "file:./render.php"
+}

@@ -3,7 +3,7 @@
  * Plugin Name: AI Share Buttons
  * Plugin URI: https://kahunam.com/plugins/ai-share-buttons
  * Description: Share buttons for AI platforms and social networks. CSS-only dropdowns, no JavaScript.
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Kahunam
  * Author URI: https://kahunam.com
  * License: GPL v2 or later
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('KAAIS_VERSION', '2.0.0');
+define('KAAIS_VERSION', '2.1.0');
 define('KAAIS_PATH', plugin_dir_path(__FILE__));
 define('KAAIS_URL', plugin_dir_url(__FILE__));
 
@@ -56,6 +56,11 @@ function kaais_get_defaults() {
         'ai_label' => 'Explore with AI',
         'social_label' => 'Share',
         'platform_order' => [],
+        // Advanced settings
+        'content_priority' => 20,
+        'wrapper_class' => '',
+        'css_loading' => 'always',
+        'dropdown_z_index' => 10,
     ];
 }
 
@@ -208,7 +213,17 @@ function kaais_render_buttons($post_id = null) {
         $container_classes[] = 'kaais--divider';
     }
 
-    echo '<div class="' . esc_attr(implode(' ', $container_classes)) . '">';
+    // Add custom wrapper class if set
+    $wrapper_class = trim($settings['wrapper_class'] ?? '');
+    if ($wrapper_class) {
+        $container_classes[] = sanitize_html_class($wrapper_class);
+    }
+
+    // Z-index override for dropdowns
+    $z_index = absint($settings['dropdown_z_index'] ?? 10);
+    $z_index_style = ($z_index !== 10) ? ' data-zindex="' . $z_index . '"' : '';
+
+    echo '<div class="' . esc_attr(implode(' ', $container_classes)) . '"' . $z_index_style . '>';
 
     // AI Section
     if ($has_ai) {
@@ -357,7 +372,28 @@ function kaais_share_buttons($post_id = null, $echo = true) {
  * Auto-insert into content
  */
 function kaais_auto_insert($content) {
+    // Skip in non-display contexts
     if (!is_singular()) {
+        return $content;
+    }
+
+    // Skip REST API requests
+    if (function_exists('wp_is_rest_request') && wp_is_rest_request()) {
+        return $content;
+    }
+
+    // Skip AJAX requests
+    if (wp_doing_ajax()) {
+        return $content;
+    }
+
+    // Skip feeds
+    if (is_feed()) {
+        return $content;
+    }
+
+    // Skip password-protected posts
+    if (post_password_required()) {
         return $content;
     }
 
@@ -388,7 +424,16 @@ function kaais_auto_insert($content) {
             return $content . $buttons;
     }
 }
-add_filter('the_content', 'kaais_auto_insert', 20);
+
+/**
+ * Register auto-insert filter with configurable priority
+ */
+function kaais_register_auto_insert() {
+    $settings = kaais_get_settings();
+    $priority = absint($settings['content_priority'] ?? 20);
+    add_filter('the_content', 'kaais_auto_insert', $priority);
+}
+add_action('init', 'kaais_register_auto_insert');
 
 /**
  * Enqueue frontend styles
@@ -400,12 +445,25 @@ function kaais_enqueue_styles() {
         return;
     }
 
+    // Check CSS loading condition
+    $css_loading = $settings['css_loading'] ?? 'always';
+
+    if ($css_loading === 'singular' && !is_singular()) {
+        return;
+    }
+
     wp_enqueue_style(
         'kaais-frontend',
         KAAIS_URL . 'assets/css/kaais-frontend.css',
         [],
         KAAIS_VERSION
     );
+
+    // Add z-index override if not default
+    $z_index = absint($settings['dropdown_z_index'] ?? 10);
+    if ($z_index !== 10) {
+        wp_add_inline_style('kaais-frontend', '.kaais__menu { z-index: ' . $z_index . '; }');
+    }
 }
 add_action('wp_enqueue_scripts', 'kaais_enqueue_styles');
 
@@ -415,6 +473,23 @@ add_action('wp_enqueue_scripts', 'kaais_enqueue_styles');
 if (is_admin()) {
     require_once KAAIS_PATH . 'includes/class-kaais-settings.php';
 }
+
+/**
+ * Register Gutenberg block
+ */
+function kaais_register_block() {
+    if (!function_exists('register_block_type')) {
+        return;
+    }
+
+    $block_path = KAAIS_PATH . 'build/blocks/share-buttons';
+
+    // Only register if build exists
+    if (file_exists($block_path . '/block.json')) {
+        register_block_type($block_path);
+    }
+}
+add_action('init', 'kaais_register_block');
 
 /**
  * Plugin activation

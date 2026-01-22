@@ -107,6 +107,22 @@ class KAAIS_Settings {
         $sanitized['ai_label'] = sanitize_text_field($input['ai_label'] ?? $defaults['ai_label']);
         $sanitized['social_label'] = sanitize_text_field($input['social_label'] ?? $defaults['social_label']);
 
+        // Advanced settings
+        $sanitized['content_priority'] = absint($input['content_priority'] ?? 20);
+        if ($sanitized['content_priority'] < 1) $sanitized['content_priority'] = 1;
+        if ($sanitized['content_priority'] > 100) $sanitized['content_priority'] = 100;
+
+        $wrapper_class = sanitize_text_field($input['wrapper_class'] ?? '');
+        $sanitized['wrapper_class'] = preg_replace('/[^a-zA-Z0-9_-]/', '', $wrapper_class);
+
+        $sanitized['css_loading'] = in_array($input['css_loading'] ?? '', ['always', 'singular'], true)
+            ? $input['css_loading']
+            : 'always';
+
+        $sanitized['dropdown_z_index'] = absint($input['dropdown_z_index'] ?? 10);
+        if ($sanitized['dropdown_z_index'] < 1) $sanitized['dropdown_z_index'] = 1;
+        if ($sanitized['dropdown_z_index'] > 9999) $sanitized['dropdown_z_index'] = 9999;
+
         return $sanitized;
     }
 
@@ -258,6 +274,22 @@ class KAAIS_Settings {
                 margin: 4px 0;
             }
             .kaais-layout-option .label { font-size: 12px; color: #666; }
+
+            /* Advanced settings toggle */
+            .kaais-advanced-toggle { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
+            .kaais-advanced-toggle .button-link {
+                font-size: 14px;
+                font-weight: 600;
+                color: #1d2327;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 0.25em;
+            }
+            .kaais-advanced-toggle .button-link:hover { color: #2271b1; }
+            .kaais-advanced-toggle .dashicons { transition: transform 0.2s; }
+            .kaais-advanced-toggle.open .dashicons { transform: rotate(180deg); }
+            #kaais-advanced.hidden { display: none; }
         ';
     }
 
@@ -579,6 +611,74 @@ class KAAIS_Settings {
                         </td>
                     </tr>
                 </table>
+
+                <h2 class="kaais-advanced-toggle">
+                    <button type="button" class="button-link" onclick="this.parentElement.classList.toggle('open'); document.getElementById('kaais-advanced').classList.toggle('hidden');">
+                        <?php esc_html_e('Advanced Settings', 'kaais'); ?>
+                        <span class="dashicons dashicons-arrow-down-alt2"></span>
+                    </button>
+                </h2>
+                <p class="description"><?php esc_html_e('For developers and advanced users.', 'kaais'); ?></p>
+
+                <div id="kaais-advanced" class="hidden">
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Content filter priority', 'kaais'); ?></th>
+                            <td>
+                                <input type="number"
+                                       name="kaais_settings[content_priority]"
+                                       value="<?php echo esc_attr($settings['content_priority'] ?? 20); ?>"
+                                       min="1"
+                                       max="100"
+                                       class="small-text">
+                                <p class="description"><?php esc_html_e('Priority for auto-insert (1-100). Lower runs earlier. Default: 20.', 'kaais'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('CSS wrapper class', 'kaais'); ?></th>
+                            <td>
+                                <input type="text"
+                                       name="kaais_settings[wrapper_class]"
+                                       value="<?php echo esc_attr($settings['wrapper_class'] ?? ''); ?>"
+                                       class="regular-text"
+                                       placeholder="my-custom-class">
+                                <p class="description"><?php esc_html_e('Additional class for CSS specificity. Letters, numbers, hyphens, underscores only.', 'kaais'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Load CSS', 'kaais'); ?></th>
+                            <td>
+                                <label style="display: block; margin-bottom: 0.5em;">
+                                    <input type="radio"
+                                           name="kaais_settings[css_loading]"
+                                           value="always"
+                                           <?php checked($settings['css_loading'] ?? 'always', 'always'); ?>>
+                                    <?php esc_html_e('Always', 'kaais'); ?>
+                                </label>
+                                <label style="display: block;">
+                                    <input type="radio"
+                                           name="kaais_settings[css_loading]"
+                                           value="singular"
+                                           <?php checked($settings['css_loading'] ?? 'always', 'singular'); ?>>
+                                    <?php esc_html_e('Singular pages only', 'kaais'); ?>
+                                    <span class="description"><?php esc_html_e('(posts, pages, not archives)', 'kaais'); ?></span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Dropdown z-index', 'kaais'); ?></th>
+                            <td>
+                                <input type="number"
+                                       name="kaais_settings[dropdown_z_index]"
+                                       value="<?php echo esc_attr($settings['dropdown_z_index'] ?? 10); ?>"
+                                       min="1"
+                                       max="9999"
+                                       class="small-text">
+                                <p class="description"><?php esc_html_e('Increase if dropdown appears behind theme elements. Default: 10.', 'kaais'); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
 
                 <?php submit_button(); ?>
             </form>

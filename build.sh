@@ -8,38 +8,54 @@ set -e
 
 PLUGIN_SLUG="ai-share-buttons"
 VERSION=$(grep "Version:" ai-share-buttons.php | sed 's/.*Version: //' | tr -d ' ')
-BUILD_DIR="./build"
+STAGING_DIR="./.build-staging"
 DIST_DIR="./dist"
 
 echo "Building ${PLUGIN_SLUG} v${VERSION}..."
 
-# Clean previous builds
-rm -rf "${BUILD_DIR}" "${DIST_DIR}"
-mkdir -p "${BUILD_DIR}/${PLUGIN_SLUG}" "${DIST_DIR}"
+# Build the Gutenberg block
+echo "  Compiling block..."
+if [ -f "package.json" ]; then
+    npm install --silent
+    npm run build --silent
+fi
+
+# Clean previous staging
+rm -rf "${STAGING_DIR}" "${DIST_DIR}"
+mkdir -p "${STAGING_DIR}/${PLUGIN_SLUG}" "${DIST_DIR}"
 
 # Copy plugin files (only what's needed to run)
-cp ai-share-buttons.php "${BUILD_DIR}/${PLUGIN_SLUG}/"
-cp uninstall.php "${BUILD_DIR}/${PLUGIN_SLUG}/"
-cp readme.txt "${BUILD_DIR}/${PLUGIN_SLUG}/"
-cp README.md "${BUILD_DIR}/${PLUGIN_SLUG}/"
+cp ai-share-buttons.php "${STAGING_DIR}/${PLUGIN_SLUG}/"
+cp uninstall.php "${STAGING_DIR}/${PLUGIN_SLUG}/"
+cp readme.txt "${STAGING_DIR}/${PLUGIN_SLUG}/"
+cp README.md "${STAGING_DIR}/${PLUGIN_SLUG}/"
 
 # Copy directories
-cp -r includes "${BUILD_DIR}/${PLUGIN_SLUG}/"
-cp -r assets "${BUILD_DIR}/${PLUGIN_SLUG}/"
+cp -r includes "${STAGING_DIR}/${PLUGIN_SLUG}/"
+cp -r assets "${STAGING_DIR}/${PLUGIN_SLUG}/"
+
+# Copy built block if exists
+if [ -d "build/blocks" ]; then
+    mkdir -p "${STAGING_DIR}/${PLUGIN_SLUG}/build"
+    cp -r build/blocks "${STAGING_DIR}/${PLUGIN_SLUG}/build/"
+fi
 
 # Create languages directory (empty but needed for i18n)
-mkdir -p "${BUILD_DIR}/${PLUGIN_SLUG}/languages"
+mkdir -p "${STAGING_DIR}/${PLUGIN_SLUG}/languages"
 
 # Remove any .DS_Store files
-find "${BUILD_DIR}" -name '.DS_Store' -delete
+find "${STAGING_DIR}" -name '.DS_Store' -delete
 
 # Create zip for manual installation
-cd "${BUILD_DIR}"
-zip -r "../${DIST_DIR}/${PLUGIN_SLUG}-${VERSION}.zip" "${PLUGIN_SLUG}"
+cd "${STAGING_DIR}"
+zip -rq "../${DIST_DIR}/${PLUGIN_SLUG}-${VERSION}.zip" "${PLUGIN_SLUG}"
 cd ..
 
 # Also create a latest.zip for convenience
 cp "${DIST_DIR}/${PLUGIN_SLUG}-${VERSION}.zip" "${DIST_DIR}/${PLUGIN_SLUG}-latest.zip"
+
+# Clean up staging
+rm -rf "${STAGING_DIR}"
 
 echo ""
 echo "Build complete!"

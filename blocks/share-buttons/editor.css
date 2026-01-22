@@ -1,0 +1,19 @@
+/**
+ * AI Share Buttons Block - Editor Styles
+ */
+
+/* Ensure dropdowns don't open in editor (no hover state) */
+.editor-styles-wrapper .kaais__menu {
+    display: none;
+}
+
+/* Show a hint that these are interactive on frontend */
+.editor-styles-wrapper .kaais__trigger,
+.editor-styles-wrapper .kaais__links a {
+    cursor: default;
+}
+
+/* Placeholder styling */
+.editor-styles-wrapper .wp-block-kaais-share-buttons .components-placeholder {
+    min-height: 60px;
+}

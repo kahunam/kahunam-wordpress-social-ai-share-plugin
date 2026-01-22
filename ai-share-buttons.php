@@ -50,9 +50,12 @@ function kaais_get_defaults() {
         'auto_insert' => false,
         'post_types' => ['post'],
         'position' => 'after',
+        'layout' => 'inline',
+        'show_labels' => true,
         'disable_css' => false,
         'ai_label' => 'Explore with AI',
         'social_label' => 'Share',
+        'platform_order' => [],
     ];
 }
 
@@ -193,14 +196,27 @@ function kaais_render_buttons($post_id = null) {
 
     do_action('kaais_before_buttons');
 
-    echo '<div class="kaais">';
+    // Build container classes based on layout
+    $container_classes = ['kaais'];
+    $layout = $settings['layout'] ?? 'inline';
+    if ($layout === 'stacked') {
+        $container_classes[] = 'kaais--stacked';
+    } elseif ($layout === 'divider') {
+        $container_classes[] = 'kaais--divider';
+    } elseif ($layout === 'stacked-divider') {
+        $container_classes[] = 'kaais--stacked';
+        $container_classes[] = 'kaais--divider';
+    }
+
+    echo '<div class="' . esc_attr(implode(' ', $container_classes)) . '">';
 
     // AI Section
     if ($has_ai) {
         do_action('kaais_before_ai_section');
 
         echo '<div class="kaais__ai">';
-        echo '<span class="kaais__label">' . esc_html($settings['ai_label']) . '</span>';
+        $label_class = ($settings['show_labels'] ?? true) ? 'kaais__label' : 'kaais__label kaais__label--hidden';
+        echo '<span class="' . esc_attr($label_class) . '">' . esc_html($settings['ai_label']) . '</span>';
         echo '<div class="kaais__buttons">';
 
         // Built-in AI platforms
@@ -278,7 +294,8 @@ function kaais_render_buttons($post_id = null) {
         do_action('kaais_before_social_section');
 
         echo '<div class="kaais__social">';
-        echo '<span class="kaais__label">' . esc_html($settings['social_label']) . '</span>';
+        $label_class = ($settings['show_labels'] ?? true) ? 'kaais__label' : 'kaais__label kaais__label--hidden';
+        echo '<span class="' . esc_attr($label_class) . '">' . esc_html($settings['social_label']) . '</span>';
         echo '<div class="kaais__links">';
 
         foreach ($settings['social_networks'] as $id => $enabled) {

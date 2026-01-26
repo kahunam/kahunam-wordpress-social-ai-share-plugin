@@ -28,7 +28,7 @@ test.describe('Admin Settings Page', () => {
   });
 
   test('settings page loads', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('AI Share Buttons');
+    await expect(page.locator('h1')).toContainText('AI Share Buttons Plugin');
   });
 
   test('displays AI platforms section', async ({ page }) => {

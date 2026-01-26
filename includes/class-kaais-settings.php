@@ -27,7 +27,7 @@ class KAAIS_Settings {
 
     public function register_settings() {
         register_setting('kaais_settings_group', 'kaais_settings', [
-            'type' => 'array',
+            'type' => 'object',
             'sanitize_callback' => [$this, 'sanitize_settings'],
             'default' => kaais_get_defaults(),
         ]);
@@ -241,39 +241,32 @@ class KAAIS_Settings {
             .kaais-prompt textarea { width: 100%; }
 
             /* Layout preview */
-            .kaais-layout-options { display: flex; gap: 1em; flex-wrap: wrap; margin: 1em 0; }
+            .kaais-layout-options { display: flex; gap: 0.75em; flex-wrap: wrap; margin: 1em 0; }
             .kaais-layout-option {
                 border: 2px solid #ddd;
                 border-radius: 8px;
-                padding: 1em;
+                padding: 0.75em 1em;
                 cursor: pointer;
                 text-align: center;
-                min-width: 120px;
+                min-width: 100px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background: #fff;
             }
             .kaais-layout-option:hover { border-color: #999; }
             .kaais-layout-option.selected { border-color: #2271b1; background: #f0f7fc; }
             .kaais-layout-option input { display: none; }
             .kaais-layout-option .preview {
-                height: 40px;
-                margin-bottom: 0.5em;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
+                margin-bottom: 0.5em;
+                color: #50575e;
             }
-            .kaais-layout-option .preview-dot {
-                width: 8px;
-                height: 8px;
-                background: #666;
-                border-radius: 2px;
-            }
-            .kaais-layout-option .preview-line {
-                width: 100%;
-                height: 1px;
-                background: #ccc;
-                margin: 4px 0;
-            }
-            .kaais-layout-option .label { font-size: 12px; color: #666; }
+            .kaais-layout-option.selected .preview { color: #2271b1; }
+            .kaais-layout-option .preview svg { display: block; }
+            .kaais-layout-option .label { font-size: 12px; color: #50575e; font-weight: 500; }
 
             /* Advanced settings toggle */
             .kaais-advanced-toggle { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
@@ -317,7 +310,7 @@ class KAAIS_Settings {
 
         ?>
         <div class="wrap kaais-settings">
-            <h1><?php esc_html_e('AI Share Buttons', 'kaais'); ?></h1>
+            <h1><?php esc_html_e('AI Share Buttons Plugin', 'kaais'); ?></h1>
 
             <form method="post" action="options.php">
                 <?php settings_fields('kaais_settings_group'); ?>
@@ -465,57 +458,60 @@ class KAAIS_Settings {
                     <label class="kaais-layout-option <?php echo ($settings['layout'] ?? 'inline') === 'inline' ? 'selected' : ''; ?>">
                         <input type="radio" name="kaais_settings[layout]" value="inline" <?php checked($settings['layout'] ?? 'inline', 'inline'); ?>>
                         <div class="preview">
-                            <span class="preview-dot"></span>
-                            <span class="preview-dot"></span>
-                            <span class="preview-dot"></span>
-                            <span class="preview-dot"></span>
+                            <svg width="56" height="24" viewBox="0 0 56 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2" y="6" width="12" height="12" rx="3" fill="currentColor"/>
+                                <rect x="16" y="6" width="12" height="12" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="30" y="6" width="12" height="12" rx="3" fill="currentColor" opacity="0.4"/>
+                                <rect x="44" y="6" width="10" height="12" rx="3" fill="currentColor" opacity="0.25"/>
+                            </svg>
                         </div>
                         <span class="label"><?php esc_html_e('Inline', 'kaais'); ?></span>
                     </label>
 
                     <label class="kaais-layout-option <?php echo ($settings['layout'] ?? '') === 'stacked' ? 'selected' : ''; ?>">
                         <input type="radio" name="kaais_settings[layout]" value="stacked" <?php checked($settings['layout'] ?? '', 'stacked'); ?>>
-                        <div class="preview" style="flex-direction: column;">
-                            <span style="font-size: 10px; color: #999;">Label</span>
-                            <div style="display: flex; gap: 4px;">
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                            </div>
+                        <div class="preview">
+                            <svg width="56" height="40" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2" y="2" width="20" height="5" rx="2" fill="currentColor" opacity="0.35"/>
+                                <rect x="2" y="9" width="10" height="10" rx="3" fill="currentColor"/>
+                                <rect x="14" y="9" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="26" y="9" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                                <rect x="2" y="23" width="14" height="5" rx="2" fill="currentColor" opacity="0.35"/>
+                                <rect x="2" y="30" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="14" y="30" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                            </svg>
                         </div>
                         <span class="label"><?php esc_html_e('Stacked', 'kaais'); ?></span>
                     </label>
 
                     <label class="kaais-layout-option <?php echo ($settings['layout'] ?? '') === 'divider' ? 'selected' : ''; ?>">
                         <input type="radio" name="kaais_settings[layout]" value="divider" <?php checked($settings['layout'] ?? '', 'divider'); ?>>
-                        <div class="preview" style="flex-direction: column; width: 100%;">
-                            <div style="display: flex; gap: 4px;">
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                            </div>
-                            <span class="preview-line"></span>
-                            <div style="display: flex; gap: 4px;">
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                            </div>
+                        <div class="preview">
+                            <svg width="56" height="40" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2" y="4" width="10" height="10" rx="3" fill="currentColor"/>
+                                <rect x="14" y="4" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="26" y="4" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                                <line x1="2" y1="20" x2="54" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
+                                <rect x="2" y="26" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="14" y="26" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                            </svg>
                         </div>
                         <span class="label"><?php esc_html_e('With Divider', 'kaais'); ?></span>
                     </label>
 
                     <label class="kaais-layout-option <?php echo ($settings['layout'] ?? '') === 'stacked-divider' ? 'selected' : ''; ?>">
                         <input type="radio" name="kaais_settings[layout]" value="stacked-divider" <?php checked($settings['layout'] ?? '', 'stacked-divider'); ?>>
-                        <div class="preview" style="flex-direction: column; width: 100%;">
-                            <span style="font-size: 10px; color: #999;">Label</span>
-                            <div style="display: flex; gap: 4px;">
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                            </div>
-                            <span class="preview-line"></span>
-                            <span style="font-size: 10px; color: #999;">Label</span>
-                            <div style="display: flex; gap: 4px;">
-                                <span class="preview-dot"></span>
-                                <span class="preview-dot"></span>
-                            </div>
+                        <div class="preview">
+                            <svg width="56" height="52" viewBox="0 0 56 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2" y="2" width="20" height="5" rx="2" fill="currentColor" opacity="0.35"/>
+                                <rect x="2" y="9" width="10" height="10" rx="3" fill="currentColor"/>
+                                <rect x="14" y="9" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="26" y="9" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                                <line x1="2" y1="25" x2="54" y2="25" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
+                                <rect x="2" y="31" width="14" height="5" rx="2" fill="currentColor" opacity="0.35"/>
+                                <rect x="2" y="38" width="10" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                                <rect x="14" y="38" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
+                            </svg>
                         </div>
                         <span class="label"><?php esc_html_e('Stacked + Divider', 'kaais'); ?></span>
                     </label>
